@@ -1,0 +1,57 @@
+name: uralbook
+services:
+  backend:
+    container_name: backend
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: development
+    # command: "npm run start:dev"
+    command: >
+      sh -c "npm run migrate && npm run seed && npm run start:dev"
+    env_file:
+      - ./.env
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_MIGRATION_HOST=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/app:delegated
+      - /usr/src/app/node_modules
+    ports:
+      - '${PORT}:${PORT}'
+
+  postgres:
+    image: postgres
+    restart: always
+    volumes:
+      - postgres:/var/lib/postgresql 
+    # set shared memory limit when using docker-compose
+    # shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: bookstore
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  postgres:

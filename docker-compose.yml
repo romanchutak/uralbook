@@ -17,9 +17,6 @@ services:
     environment:
       - DATABASE_HOST=postgres
       - DATABASE_MIGRATION_HOST=postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - .:/usr/src/app:delegated
       - /usr/src/app/node_modules
@@ -43,11 +40,6 @@ services:
       PGUSER: postgres
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: bookstore
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   adminer:
     image: adminer
